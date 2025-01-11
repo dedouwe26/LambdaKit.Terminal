@@ -40,15 +40,90 @@ public abstract class TerminalWindow : IDisposable {
     /// <summary>
     /// The height (in characters) of the terminal.
     /// </summary>
+    public Encoding ErrorEncoding { get; set; }
+    /// <summary>
+    /// Hides the cursor in the terminal.
+    /// </summary>
+    public bool HideCursor { get; set; }
+    /// <summary>
+    /// True if this backend should listen for keypresses.
+    /// </summary>
+    public bool ListenForKeys { get; set; }
+    /// <summary>
+    /// An event for when a key is pressed.
+    /// </summary>
+    public static event KeyPressCallback? OnKeyPress;
     public abstract int Height {get;}
     /// <summary>
     /// The encoding used for the in stream (default: UTF-8).
     /// </summary>
-    public abstract Encoding InEncoding {get; set;}
+    public (int Width, int Height) Size { get; set; }
     /// <summary>
-    /// The encoding used for the error and out streams (default: UTF-8).
+    /// The position of the cursor in the terminal.
     /// </summary>
-    public abstract Encoding OutEncoding {get; set;}
+    public (int X, int Y) CursorPosition { get; set; }
+    /// <summary>
+    /// Waits until a key is pressed.
+    /// </summary>
+    public void WaitForKeyPress();
+    /// <summary>
+    /// Method in new thread that should call <see cref="OnKeyPress"/> when a key is pressed.
+    /// </summary>
+    protected void ListenForKeysMethod();
+    /// <summary>
+    /// Clears (resets) the whole screen.
+    /// </summary>
+    public void Clear();
+    /// <summary>
+    /// Clears screen from the position to end of the screen.
+    /// </summary>
+    /// <param name="start">The start position.</param>
+    public void ClearFrom((int x, int y) start);
+    /// <summary>
+    /// Clears (deletes) a line.
+    /// </summary>
+    /// <param name="line">The y-axis of the line.</param>
+    public void ClearLine(int line);
+    /// <summary>
+    /// Clears the line from the position to the end of the line.
+    /// </summary>
+    /// <param name="start">The start position.</param>
+    public void ClearLineFrom((int x, int y) start);
+
+}
+
+/// <summary>
+/// Represents an interface of common methods of a terminal.
+/// </summary>
+public abstract class TerminalBackend : ITerminalBackend {
+    /// <inheritdoc/>
+    public abstract TextReader StandardInput { get; }
+
+    /// <inheritdoc/>
+    public abstract TextWriter StandardOutput { get; }
+
+    /// <inheritdoc/>
+    public abstract TextWriter StandardError { get; }
+
+    /// <inheritdoc/>
+    public abstract Encoding InputEncoding { get; set; }
+
+    /// <inheritdoc/>
+    public abstract Encoding OutputEncoding { get; set; }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Defaults to setting and getting the <see cref="OutputEncoding"/>.
+    /// </remarks>
+    public virtual Encoding ErrorEncoding { get { return OutputEncoding; } set { OutputEncoding = value; } }
+
+    /// <inheritdoc/>
+    public virtual (int Width, int Height) Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    
+    /// <inheritdoc/>
+    public abstract void Dispose();
+
+    
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the terminal, with a style.
     /// </summary>
@@ -91,9 +166,11 @@ public abstract class TerminalWindow : IDisposable {
     /// <param name="pos">The position.</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public virtual void Goto((int x, int y) pos) {
-        if (pos.x >= Width || pos.x < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos x is higher than the width or is lower than 0."); }
-        if (pos.y >= Height || pos.y < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos y is higher than the height or is lower than 0."); }
-        Out.Write(ANSI.MoveCursor(pos.x, pos.y));
+        try {
+            if (pos.x >= Size.Width || pos.x < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos x is higher than the width or is lower than 0."); }
+            if (pos.y >= Size.Height || pos.y < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos y is higher than the height or is lower than 0."); }
+        } catch (NotImplementedException) { }
+        StandardOutput.Write(ANSI.MoveCursor(pos.x, pos.y));
     }
     /// <summary>
     /// Gets the cursor position.
@@ -108,7 +185,7 @@ public abstract class TerminalWindow : IDisposable {
     /// <param name="pos">The position to set <paramref name="text"/> at.</param>
     /// <param name="style">The text decoration to use.</param>
     public virtual void Set<T>(T? text, (int x, int y) pos, Style? style = null) {
-        Goto(pos);
+        CursorPosition = pos;
         Write(text, style);
     }
 
@@ -120,7 +197,7 @@ public abstract class TerminalWindow : IDisposable {
     /// <param name="pos">The position to set <paramref name="text"/> at.</param>
     /// <param name="style">The text decoration to use.</param>
     public virtual void SetError<T>(T? text, (int x, int y) pos, Style? style = null) {
-        Goto(pos);
+        CursorPosition = pos;
         WriteError(text, style);
     }
     /// <summary>
@@ -161,32 +238,32 @@ public abstract class TerminalWindow : IDisposable {
     /// Clears (resets) the whole screen.
     /// </summary>
     public virtual void Clear() {
-        Goto((0,0));
-        Out.Write(ANSI.EraseScreenFromCursor);
+        CursorPosition = (0, 0);
+        StandardOutput.Write(ANSI.EraseScreenFromCursor);
     }
     /// <summary>
     /// Clears screen from the position to end of the screen.
     /// </summary>
-    /// <param name="pos">The start position.</param>
-    public virtual void ClearFrom((int x, int y) pos) {
-        Goto(pos);
-        Out.Write(ANSI.EraseLineFromCursor);
+    /// <param name="start">The start position.</param>
+    public virtual void ClearFrom((int x, int y) start) {
+        CursorPosition = start;
+        StandardOutput.Write(ANSI.EraseLineFromCursor);
     }
     /// <summary>
     /// Clears (deletes) a line.
     /// </summary>
     /// <param name="line">The y-axis of the line.</param>
     public virtual void ClearLine(int line) {
-        Goto((0, line));
-        Out.Write(ANSI.EraseLine);
+        CursorPosition = (0, line);
+        StandardOutput.Write(ANSI.EraseLine);
     }
     /// <summary>
     /// Clears the line from the position to the end of the line.
     /// </summary>
-    /// <param name="pos">The start position.</param>
-    public virtual void ClearLineFrom((int x, int y) pos) {
-        Goto(pos);
-        Out.Write(ANSI.EraseLineFromCursor);
+    /// <param name="start">The start position.</param>
+    public virtual void ClearLineFrom((int x, int y) start) {
+        CursorPosition = start;
+        StandardOutput.Write(ANSI.EraseLineFromCursor);
     }
     /// <summary>
     /// The thread that is running <see cref="ListenForKeysMethod"/>.
@@ -196,6 +273,8 @@ public abstract class TerminalWindow : IDisposable {
     /// If this window is currently listening to keys.
     /// </summary>
     protected bool listenForKeys = false;
+    private (int X, int Y) CursorPosition { get; set; }
+
     /// <summary>
     /// If it should listen for keys.
     /// </summary>
@@ -210,6 +289,9 @@ public abstract class TerminalWindow : IDisposable {
     } get {
         return listenForKeys;
     }}
+
+    public bool HideCursor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
     /// <summary>
     /// Method in new thread that should call <see cref="OnKeyPress"/> when a key is pressed.
     /// </summary>
