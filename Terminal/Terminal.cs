@@ -87,7 +87,7 @@ public static class Terminal {
     /// <exception cref="PlatformNotSupportedException"></exception>
     public static TerminalBackend CreateBackend() {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-            return new WinTerminalWindow(title);
+            return new WindowsBackend(title);
         } else {
             // NOTE: Default to Dotnet implementation.
             return new ConsoleBackend();

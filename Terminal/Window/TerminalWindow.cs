@@ -42,20 +42,7 @@ public abstract class TerminalWindow : IDisposable {
     /// </summary>
     public Encoding ErrorEncoding { get; set; }
     /// <summary>
-    /// Hides the cursor in the terminal.
-    /// </summary>
-    public bool HideCursor { get; set; }
-    /// <summary>
-    /// True if this backend should listen for keypresses.
-    /// </summary>
-    public bool ListenForKeys { get; set; }
-    /// <summary>
-    /// An event for when a key is pressed.
-    /// </summary>
-    public static event KeyPressCallback? OnKeyPress;
-    public abstract int Height {get;}
-    /// <summary>
-    /// The encoding used for the in stream (default: UTF-8).
+    /// The width and the height (in characters) of the terminal.
     /// </summary>
     public (int Width, int Height) Size { get; set; }
     /// <summary>
@@ -131,7 +118,8 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     public virtual void Write<T>(T? text, Style? style = null) {
-        Out.Write((style ?? new Style()).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
+        if (text==null) return;
+        StandardOutput.Write((style ?? new Style()).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
     }
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the terminal, with a style.
@@ -140,7 +128,8 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     public virtual void WriteLine<T>(T? text, Style? style = null) {
-        Out.WriteLine((style ?? new Style()).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
+        if (text==null) return;
+        StandardOutput.WriteLine((style ?? new Style()).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
     }
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the error stream, with a style.
@@ -149,7 +138,8 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
     public virtual void WriteErrorLine<T>(T? text, Style? style = null) {
-        Error.WriteLine((style ?? new Style {ForegroundColor = Colors.Red}).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
+        if (text==null) return;
+        StandardError.WriteLine((style ?? new Style {ForegroundColor = Colors.Red}).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
     }
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the error stream, with a style.
@@ -158,25 +148,9 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
     public virtual void WriteError<T>(T? text, Style? style = null) {
-        Error.Write((style ?? new Style {ForegroundColor = Colors.Red}).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
+        if (text==null) return;
+        StandardError.Write((style ?? new Style {ForegroundColor = Colors.Red}).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
     }
-    /// <summary>
-    /// Sets the cursor to that position.
-    /// </summary>
-    /// <param name="pos">The position.</param>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public virtual void Goto((int x, int y) pos) {
-        try {
-            if (pos.x >= Size.Width || pos.x < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos x is higher than the width or is lower than 0."); }
-            if (pos.y >= Size.Height || pos.y < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos y is higher than the height or is lower than 0."); }
-        } catch (NotImplementedException) { }
-        StandardOutput.Write(ANSI.MoveCursor(pos.x, pos.y));
-    }
-    /// <summary>
-    /// Gets the cursor position.
-    /// </summary>
-    /// <returns>The cursor position.</returns>
-    public abstract (int x, int y) GetCursorPosition();
     /// <summary>
     /// Sets the something (<see cref="object.ToString"/>) at a <paramref name="pos"/>, with a <paramref name="style"/>.
     /// </summary>
