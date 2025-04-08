@@ -1,14 +1,11 @@
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 
-namespace OxDED.Terminal.Window;
+namespace OxDED.Terminal.Backend.Window;
 
 internal static class Utils {
-        
     internal static Stream GetStream(nint handle) {
         SafeFileHandle fileHandle = new(handle, false);
         FileStream stream = new(fileHandle, FileAccess.ReadWrite);
@@ -28,11 +25,26 @@ internal static partial class WinAPI {
         internal uint dwControlKeyState;
         internal readonly char uChar => (char)_uChar;
     }
+    [Flags]
+    internal enum ControlKeyState {
+        RightAltPressed = 0x0001,
+        LeftAltPressed = 0x0002,
+        RightCtrlPressed = 0x0004,
+        LeftCtrlPressed = 0x0008,
+        ShiftPressed = 0x0010,
+        NumLockOn = 0x0020,
+        ScrollLockOn = 0x0040,
+        CapsLockOn = 0x0080,
+        EnhancedKey = 0x0100
+    }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     internal struct INPUT_RECORD {
         internal ushort EventType;
         internal KEY_EVENT_RECORD keyEvent;
     }
+    internal const string ConsoleIn = "CONIN$";
+    internal const string ConsoleOut = "CONOUT$";
+    internal const string ConsoleError = ConsoleOut;
     internal const int STD_OUTPUT_HANDLE = -11;
     internal const int STD_INPUT_HANDLE = -10;
     internal const int STD_ERROR_HANDLE = -12;
@@ -68,20 +80,19 @@ internal static partial class WinAPI {
 /// <summary>
 /// A wrapper for <see cref="TerminalWindow"/> on Windows.
 /// </summary>
-public class WinTerminalWindow : TerminalWindow {
-    private const string ConsoleIn = "CONIN$";
-    private const string ConsoleOut = "CONOUT$";
-    private const string ConsoleError = ConsoleOut;
+public class WindowsWindow : TerminalWindow {
 
     private nint consoleOut;
     private nint consoleIn;
     private nint consoleErr;
+
+    private bool IsDisposed;
     /// <summary>
     /// Creates a new Windows terminal window.
     /// </summary>
     /// <param name="title">The name of the window.</param>
     /// <exception cref="Win32Exception"></exception>
-    public WinTerminalWindow(string title) {
+    public WindowsWindow(string title) {
         nint stdOut = WinAPI.GetStdHandle(WinAPI.STD_OUTPUT_HANDLE);
         nint stdIn = WinAPI.GetStdHandle(WinAPI.STD_INPUT_HANDLE);
         nint stdErr = WinAPI.GetStdHandle(WinAPI.STD_ERROR_HANDLE);
@@ -92,9 +103,9 @@ public class WinTerminalWindow : TerminalWindow {
             }
         }
 
-        consoleOut = WinAPI.CreateFile(ConsoleOut, 0x80000000 | 0x40000000, 2, nint.Zero, 3, 0, nint.Zero);
-        consoleIn = WinAPI.CreateFile(ConsoleIn, 0x80000000 | 0x40000000, 1, nint.Zero, 3, 0, nint.Zero);
-        consoleErr = WinAPI.CreateFile(ConsoleError, 0x80000000 | 0x40000000, 2, nint.Zero, 3, 0, nint.Zero);
+        consoleOut = WinAPI.CreateFile(WinAPI.ConsoleOut, 0x80000000 | 0x40000000, 2, nint.Zero, 3, 0, nint.Zero);
+        consoleIn = WinAPI.CreateFile(WinAPI.ConsoleIn, 0x80000000 | 0x40000000, 1, nint.Zero, 3, 0, nint.Zero);
+        consoleErr = WinAPI.CreateFile(WinAPI.ConsoleError, 0x80000000 | 0x40000000, 2, nint.Zero, 3, 0, nint.Zero);
 
         if (!WinAPI.SetStdHandle(WinAPI.STD_OUTPUT_HANDLE, consoleOut)) {
             throw new Win32Exception("Failed to set the handle for the console out stream: "+Marshal.GetLastWin32Error());
@@ -125,28 +136,13 @@ public class WinTerminalWindow : TerminalWindow {
         Title = title;
     }
     private StreamWriter outStream;
-    /// <inheritdoc/>
-    public override TextWriter Out { get => outStream;}
     private StreamReader inStream;
-    /// <inheritdoc/>
-    public override TextReader In { get => inStream;}
     private StreamWriter errStream;
-    /// <inheritdoc/>
-    public override TextWriter Error { get => errStream;}
 
-    /// <inheritdoc/>
-    public override int Width => Console.WindowWidth;
-
-    /// <inheritdoc/>
-    public override int Height => Console.WindowHeight;
-    /// <inheritdoc/>
-    public override Encoding InEncoding { get => inStream.CurrentEncoding; set { inStream = new StreamReader(Utils.GetStream(consoleIn), value); } }
-    /// <inheritdoc/>
-    public override Encoding OutEncoding { get => outStream.Encoding; set { outStream = new StreamWriter(Utils.GetStream(consoleOut), value); errStream = new StreamWriter(Utils.GetStream(consoleErr), value); } }
-    /// <summary>
-    /// An event for when a key is released.
-    /// </summary>
-    public event KeyPressCallback? OnKeyRelease;
+    // /// <inheritdoc/>
+    // public override Encoding InEncoding { get => inStream.CurrentEncoding; set { inStream = new StreamReader(Utils.GetStream(consoleIn), value); } }
+    // /// <inheritdoc/>
+    // public override Encoding OutEncoding { get => outStream.Encoding; set { outStream = new StreamWriter(Utils.GetStream(consoleOut), value); errStream = new StreamWriter(Utils.GetStream(consoleErr), value); } }
     
     /// <inheritdoc/>
     /// <exception cref="Win32Exception"></exception>
@@ -180,6 +176,25 @@ public class WinTerminalWindow : TerminalWindow {
     }
 
     /// <inheritdoc/>
+    public override TextReader StandardInput => inStream;
+    /// <inheritdoc/>
+    public override TextWriter StandardOutput => outStream;
+    /// <inheritdoc/>
+    public override TextWriter StandardError => errStream;
+
+    /// <inheritdoc/>
+    public override Encoding InputEncoding { get => inStream.CurrentEncoding; set { inStream = new StreamReader(Utils.GetStream(consoleIn), value); } }
+    /// <inheritdoc/>
+    public override Encoding OutputEncoding { get => outStream.Encoding; set { outStream = new StreamWriter(Utils.GetStream(consoleOut), value); } }
+    /// <inheritdoc/>
+    public override Encoding ErrorEncoding { get => errStream.Encoding; set => errStream = new StreamWriter(Utils.GetStream(consoleErr), value); }
+    /// <inheritdoc/>
+    public override (int x, int y) CursorPosition { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    
+    /// <inheritdoc/>
+    public override bool BlockCancelKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    /// <inheritdoc/>
     /// <exception cref="Win32Exception"></exception>
     public override void Dispose() {
         if (IsDisposed) { return; }
@@ -207,42 +222,6 @@ public class WinTerminalWindow : TerminalWindow {
         IsDisposed = true;
         GC.SuppressFinalize(this);
     }
-
-    /// <inheritdoc/>
-    /// <exception cref="Win32Exception"></exception>
-    protected override void ListenForKeysMethod() {
-        while (listenForKeys) {
-            if (!WinAPI.ReadConsoleInput(consoleIn, out WinAPI.INPUT_RECORD ev, 1, out int eventsRead)) {
-                throw new Win32Exception("Failed to read console inputs: "+Marshal.GetLastWin32Error());
-            }
-
-            bool isKeyDown = ev.EventType == 0x0001 && ev.keyEvent.bKeyDown != false;
-            char ch = ev.keyEvent.uChar;
-            ushort keyCode = ev.keyEvent.wVirtualKeyCode;
-
-            if (!isKeyDown) {
-                if (keyCode != 0x12)
-                    continue;
-            }
-            if (ch == 0) {
-                if ((keyCode >= 0x10 && keyCode <= 0x12) || keyCode == 0x14 || keyCode == 0x90 || keyCode == 0x91)
-                    continue;
-            }
-            ControlKeyState state = (ControlKeyState)ev.keyEvent.dwControlKeyState;
-            bool shift = (state & ControlKeyState.ShiftPressed) != 0;
-            bool alt = (state & (ControlKeyState.LeftAltPressed | ControlKeyState.RightAltPressed)) != 0;
-            bool control = (state & (ControlKeyState.LeftCtrlPressed | ControlKeyState.RightCtrlPressed)) != 0;
-            if (isKeyDown) {
-                KeyPress((ConsoleKey)keyCode, ch, alt, shift, control);
-            } else {
-                OnKeyRelease?.Invoke((ConsoleKey)keyCode, ch, alt, shift, control);
-            }
-        }
-    }
-    /// <inheritdoc/>
-    public override (int x, int y) GetCursorPosition() {
-        throw new NotImplementedException();
-    }
     /// <inheritdoc/>
     /// <exception cref="Win32Exception"></exception>
     public override void WaitForKeyPress() {
@@ -251,16 +230,39 @@ public class WinTerminalWindow : TerminalWindow {
         }
     }
 
-    [Flags]
-    internal enum ControlKeyState {
-        RightAltPressed = 0x0001,
-        LeftAltPressed = 0x0002,
-        RightCtrlPressed = 0x0004,
-        LeftCtrlPressed = 0x0008,
-        ShiftPressed = 0x0010,
-        NumLockOn = 0x0020,
-        ScrollLockOn = 0x0040,
-        CapsLockOn = 0x0080,
-        EnhancedKey = 0x0100
+    /// <inheritdoc/>
+    /// <exception cref="Win32Exception"></exception>
+    public override bool ReadKey(out ConsoleKey key, out char keyChar, out bool alt, out bool shift, out bool control) {
+        key = default;
+        keyChar = default;
+        alt = default;
+        shift = default;
+        control = default;
+
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        
+        if (!WinAPI.ReadConsoleInput(consoleIn, out WinAPI.INPUT_RECORD ev, 1, out int eventsRead)) {
+            throw new Win32Exception("Failed to read console inputs: "+Marshal.GetLastWin32Error());
+        }
+
+        bool isKeyDown = ev.EventType == 0x0001 && ev.keyEvent.bKeyDown != false;
+        char ch = ev.keyEvent.uChar;
+        ushort keyCode = ev.keyEvent.wVirtualKeyCode;
+
+        if (!isKeyDown) {
+            if (keyCode != 0x12)
+                return false;
+        }
+        if (ch == 0) {
+            if ((keyCode >= 0x10 && keyCode <= 0x12) || keyCode == 0x14 || keyCode == 0x90 || keyCode == 0x91)
+                return false;
+        }
+        WinAPI.ControlKeyState state = (WinAPI.ControlKeyState)ev.keyEvent.dwControlKeyState;
+        key = (ConsoleKey)keyCode;
+        keyChar = ch;
+        shift = (state & WinAPI.ControlKeyState.ShiftPressed) != 0;
+        alt = (state & (WinAPI.ControlKeyState.LeftAltPressed | WinAPI.ControlKeyState.RightAltPressed)) != 0;
+        control = (state & (WinAPI.ControlKeyState.LeftCtrlPressed | WinAPI.ControlKeyState.RightCtrlPressed)) != 0;
+        return true;
     }
 }
