@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using OxDED.Terminal.Backend;
 using OxDED.Terminal.Backend.Window;
@@ -19,7 +20,7 @@ public delegate void KeyPressCallback(ConsoleKey key, char keyChar, bool alt, bo
 /// Handles all the terminal stuff.
 /// </summary>
 public static class Terminal {
-    private static ITerminalBackend backend;
+    private static readonly ITerminalBackend backend;
     static Terminal() {
         backend = CreateBackend();
         OutputEncoding = Encoding.UTF8;
@@ -32,19 +33,20 @@ public static class Terminal {
     /// </summary>
     /// <returns>A new backend.</returns>
     public static TerminalBackend CreateBackend() {
-        if (false) {
-
-        } else {
-            return new ConsoleBackend();
-        }
+        return new ConsoleBackend();
     }
     /// <summary>
     /// Creates a new terminal window (experimental).
     /// </summary>
     /// <returns>A new terminal window.</returns>
     /// <exception cref="PlatformNotSupportedException"></exception>
-    public static TerminalWindow CreateWindow() {
-        
+    [SupportedOSPlatform("Windows")]
+    public static TerminalWindow CreateWindow(string title = "Terminal") {
+        #if OS_WINDOWS
+        return new WindowsWindow(title);
+        #else
+        throw new PlatformNotSupportedException("Only Windows supports terminal windows.");
+        #endif
     }
 
     private static Thread? listenForKeysThread;
@@ -155,10 +157,9 @@ public static class Terminal {
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the error stream, with a style.
     /// </summary>
-    /// <typeparam name="T">The type of what to write (<see cref="object.ToString"/>).</typeparam>
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
-    public static void WriteErrorLine<T>(object? text, Style? style = null) {
+    public static void WriteErrorLine(object? text, Style? style = null) {
         Error.WriteLine((style ?? new Style {ForegroundColor = Colors.Red}).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
     }
     /// <summary>

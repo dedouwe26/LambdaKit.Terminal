@@ -97,10 +97,15 @@ public class WindowsWindow : TerminalWindow {
         nint stdIn = WinAPI.GetStdHandle(WinAPI.STD_INPUT_HANDLE);
         nint stdErr = WinAPI.GetStdHandle(WinAPI.STD_ERROR_HANDLE);
 
-        if (WinAPI.GetConsoleWindow() == nint.Zero) {
-            if (!WinAPI.AllocConsole()) {
-                throw new Win32Exception("Failed to allocate a console: "+Marshal.GetLastWin32Error());
+        // TODO: Implement more...
+
+        if (WinAPI.GetConsoleWindow() != nint.Zero) {
+            if (!WinAPI.FreeConsole()) {
+                throw new Win32Exception("Failed to free the console window: "+Marshal.GetLastWin32Error());
             }
+        }
+        if (!WinAPI.AllocConsole()) {
+            throw new Win32Exception("Failed to allocate a console: "+Marshal.GetLastWin32Error());
         }
 
         consoleOut = WinAPI.CreateFile(WinAPI.ConsoleOut, 0x80000000 | 0x40000000, 2, nint.Zero, 3, 0, nint.Zero);
@@ -146,13 +151,16 @@ public class WindowsWindow : TerminalWindow {
     
     /// <inheritdoc/>
     /// <exception cref="Win32Exception"></exception>
+    /// <exception cref="ObjectDisposedException"></exception>
     /// <remarks>Gets the first 300 chars of the title.</remarks>
     public override string Title {
         get {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
             _ = WinAPI.GetConsoleTitle(out string title, 300);
             return title;
         }
         set {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
             if (!WinAPI.SetConsoleTitle(value)) {
                 throw new Win32Exception("Failed to set the title: "+Marshal.GetLastWin32Error());
             }
@@ -162,8 +170,10 @@ public class WindowsWindow : TerminalWindow {
     private bool isCursorHidden = false;
 
     /// <inheritdoc/>
+    /// <exception cref="ObjectDisposedException"></exception>
     public override bool HideCursor { 
         set {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
             if (value) {
                 outStream.Write(ANSI.CursorInvisible);
             } else {
@@ -171,6 +181,7 @@ public class WindowsWindow : TerminalWindow {
             }
             isCursorHidden = value;
         } get {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
             return isCursorHidden;
         }
     }
@@ -193,6 +204,9 @@ public class WindowsWindow : TerminalWindow {
     
     /// <inheritdoc/>
     public override bool BlockCancelKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    
+    /// <inheritdoc/>
+    public override (uint Width, uint Height) Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     /// <inheritdoc/>
     /// <exception cref="Win32Exception"></exception>
@@ -224,7 +238,9 @@ public class WindowsWindow : TerminalWindow {
     }
     /// <inheritdoc/>
     /// <exception cref="Win32Exception"></exception>
+    /// <exception cref="ObjectDisposedException"></exception>
     public override void WaitForKeyPress() {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (!WinAPI.ReadConsoleInput(consoleIn, out _, 1, out _)) {
             throw new Win32Exception("Failed to read console inputs: "+Marshal.GetLastWin32Error());
         }
@@ -232,6 +248,7 @@ public class WindowsWindow : TerminalWindow {
 
     /// <inheritdoc/>
     /// <exception cref="Win32Exception"></exception>
+    /// <exception cref="ObjectDisposedException"></exception>
     public override bool ReadKey(out ConsoleKey key, out char keyChar, out bool alt, out bool shift, out bool control) {
         key = default;
         keyChar = default;

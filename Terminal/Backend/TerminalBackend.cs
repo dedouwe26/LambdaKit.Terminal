@@ -25,7 +25,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     public abstract Encoding ErrorEncoding { get; set; }
 
     /// <inheritdoc/>
-    public virtual (uint Width, uint Height) Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public abstract (uint Width, uint Height) Size { get; set; }
     
     /// <inheritdoc/>
     public abstract void Dispose();
@@ -34,37 +34,33 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the terminal, with a style.
     /// </summary>
-    /// <typeparam name="T">The type of what to write (<see cref="object.ToString"/>).</typeparam>
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
-    public virtual void Write<T>(T? text, Style? style = null) {
+    public virtual void Write(object? text, Style? style = null) {
         StandardOutput.Write((style ?? new Style()).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
     }
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the terminal, with a style.
     /// </summary>
-    /// <typeparam name="T">The type of what to write (<see cref="object.ToString"/>).</typeparam>
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
-    public virtual void WriteLine<T>(T? text, Style? style = null) {
+    public virtual void WriteLine(object? text, Style? style = null) {
         StandardOutput.WriteLine((style ?? new Style()).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
     }
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the error stream, with a style.
     /// </summary>
-    /// <typeparam name="T">The type of what to write (<see cref="object.ToString"/>).</typeparam>
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
-    public virtual void WriteErrorLine<T>(T? text, Style? style = null) {
+    public virtual void WriteErrorLine(object? text, Style? style = null) {
         StandardError.WriteLine((style ?? new Style {ForegroundColor = Colors.Red}).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
     }
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the error stream, with a style.
     /// </summary>
-    /// <typeparam name="T">The type of what to write (<see cref="object.ToString"/>).</typeparam>
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
-    public virtual void WriteError<T>(T? text, Style? style = null) {
+    public virtual void WriteError(object? text, Style? style = null) {
         StandardError.Write((style ?? new Style {ForegroundColor = Colors.Red}).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
     }
     /// <summary>
@@ -95,11 +91,10 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <summary>
     /// Sets the something (<see cref="object.ToString"/>) at a <paramref name="pos"/>, with a <paramref name="style"/>.
     /// </summary>
-    /// <typeparam name="T">The type of what to write.</typeparam>
     /// <param name="text">The thing to set at <paramref name="pos"/> to the terminal.</param>
     /// <param name="pos">The position to set <paramref name="text"/> at.</param>
     /// <param name="style">The text decoration to use.</param>
-    public virtual void Set<T>(T? text, (int x, int y) pos, Style? style = null) {
+    public virtual void Set(object? text, (int x, int y) pos, Style? style = null) {
         Goto(pos);
         Write(text, style);
     }
@@ -107,11 +102,10 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <summary>
     /// Sets the something in the error stream (<see cref="object.ToString"/>) at a <paramref name="pos"/>, with a <paramref name="style"/>.
     /// </summary>
-    /// <typeparam name="T">The type of what to write.</typeparam>
     /// <param name="text">The thing to set at <paramref name="pos"/> to the terminal.</param>
     /// <param name="pos">The position to set <paramref name="text"/> at.</param>
     /// <param name="style">The text decoration to use.</param>
-    public virtual void SetError<T>(T? text, (int x, int y) pos, Style? style = null) {
+    public virtual void SetError(object? text, (int x, int y) pos, Style? style = null) {
         GotoError(pos);
         WriteError(text, style);
     }

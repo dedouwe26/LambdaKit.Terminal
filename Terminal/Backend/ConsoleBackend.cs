@@ -31,6 +31,12 @@ public class ConsoleBackend : TerminalBackend {
     /// <inheritdoc/>
     public override Encoding ErrorEncoding { get => Console.OutputEncoding; set => Console.OutputEncoding = value; }
 
+    /// <inheritdoc/>
+    public override (uint Width, uint Height) Size { get => ((uint)Console.WindowWidth, (uint)Console.WindowHeight); set {
+        Console.WindowWidth = (int)value.Width;
+        Console.WindowHeight = (int)value.Height;
+    } }
+
     private bool cursorHidden = false;
     /// <inheritdoc/>
     public override bool HideCursor { get => cursorHidden; set { Console.CursorVisible = !value; cursorHidden = value; } }
@@ -38,6 +44,7 @@ public class ConsoleBackend : TerminalBackend {
     public override (int x, int y) CursorPosition { get => Console.GetCursorPosition(); set => Console.SetCursorPosition(value.x, value.y); }
     /// <inheritdoc/>
     public override bool BlockCancelKey { get; set; }
+    
 
     /// <inheritdoc/>
     public override void Dispose() { GC.SuppressFinalize(this); }
