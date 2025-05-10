@@ -40,6 +40,9 @@ public static class ANSI {
         public const string FAINT = "2";
         public const string ITALIC = "3";
         public const string UNDERLINE = "4";
+        /// <summary>
+        /// Blinks slowly. More widly implemented than <see cref="RAPIDBLINK"/>. Interferes with <see cref="RAPIDBLINK"/>.
+        /// </summary>
         public const string SLOWBLINK = "5";
         public const string RAPIDBLINK = "6";
         public const string INVERT = "7";
@@ -53,7 +56,7 @@ public static class ANSI {
         public const string RESETINTENSITY = "22";
         public const string RESETITALIC = "23";
         /// <summary>
-        /// Resets underline or double underline. Not to be confused with <seealso cref="DEFAULTUNDERLINE"/>.
+        /// Resets underline or double underline. Not to be confused with <see cref="DEFAULTUNDERLINE"/>.
         /// </summary>
         public const string RESETUNDERLINE = "24";
         public const string RESETOVERLINE = "55";
