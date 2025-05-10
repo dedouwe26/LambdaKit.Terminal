@@ -1,190 +1,116 @@
+using System.Diagnostics.Contracts;
+
 namespace OxDED.Terminal;
 
 /// <summary>
 /// Contains all the ANSI codes.
 /// </summary>
 public static class ANSI {
-    /// <summary>
-    /// (0x1B)
-    /// </summary>
+    #region C0 - Control Codes
+    public const string BEL = "\x07";
     public const string ESC = "\x1B";
-    /// <summary>
-    /// CSI (ESC + [)
-    /// </summary>
-    public const string CSI = ESC+"[";
-    
-    /// 
-    public const string EraseScreen = CSI+"2J";
-    /// 
-    public const string EraseScreenFromCursor = CSI+"0J";
-    /// 
-    public const string EraseLine = CSI+"2K";
-    /// 
-    public const string EraseLineFromCursor = CSI+"0K";
-    /// <summary>
-    /// Will return as CSI{row};{column}R <para/>
-    /// Where CSI is CSI,
-    /// {row} is the row and
-    /// {column} is the column.
-    /// </summary>
-    public const string RequestCursorPosition = CSI+"6n";
-    /// 
-    public const string CursorInvisible = CSI+"?25l";
-    /// 
-    public const string CursorVisible = CSI+"?25h";
+    #endregion
 
-    /// <summary>
-    /// Contains all the ANSI codes for text decoration (excluding colors).
-    /// </summary>
-    public static class Styles {
-        /// <summary>
-        /// Resets all text decoration, including colors.
-        /// </summary>
-        public const string ResetAll = CSI+"0m";
+    #region C1 - Control Codes
+    public const string CSI = ESC + "\x9B";
+    #endregion
 
-        /// <summary>
-        /// Bold, interferes with <see cref="Faint"/>. <para/>
-        /// NOTE: In Windows Terminal you will need to set the 'Intense text style' in the profile to 'Bold font'.
-        /// </summary>
-        public const string Bold = CSI+"1m";
-        /// <summary>
-        /// Resets <see cref="Bold"/> or <see cref="Faint"/>.
-        /// </summary>
-        public const string ResetBold = CSI+"22m";
+    #region CSI - Control Sequence Introducer
+    public const string DSR = CSI + "6n";
+    [Pure]
+    public static string CUP(uint row, uint col) => CSI + $"{row + 1};{col + 1}H";
+    // TODO: Add ED.
+    #endregion
 
+    public static class SGR {
         /// <summary>
-        /// Dim or faint, interferes with <see cref="Bold"/>.
+        /// Makes a control sequence from the given SGR codes.
         /// </summary>
-        public const string Faint = CSI+"2m";
+        /// <param name="codes">The codes</param>
+        /// <returns></returns>
+        public static string Build(params string[] codes) {
+            return CSI + string.Join(';', codes) + 'm';
+        }
+        #region SGR - Styles
         /// <summary>
-        /// Resets <see cref="Faint"/> or <see cref="Bold"/>.
+        /// Resets all styles and colors.
         /// </summary>
-        public const string ResetFaint = CSI+"22m";
+        public const string RESETALL = "0";
+        public const string BOLD = "1";
+        public const string FAINT = "2";
+        public const string ITALIC = "3";
+        public const string UNDERLINE = "4";
+        public const string SLOWBLINK = "5";
+        public const string RAPIDBLINK = "6";
+        public const string INVERT = "7";
+        public const string HIDE = "8";
+        public const string STRIKETHROUGH = "9";
+        public const string DEFAULTFONT = "10";
+        [Pure]
+        public static string Font(uint font) => font.ToString();
+        public const string DOUBLEUNDERLINE = "21";
+        public const string OVERLINE = "53";
+        public const string RESETINTENSITY = "22";
+        public const string RESETITALIC = "23";
+        /// <summary>
+        /// Resets underline or double underline. Not to be confused with <seealso cref="DEFAULTUNDERLINE"/>.
+        /// </summary>
+        public const string RESETUNDERLINE = "24";
+        public const string RESETOVERLINE = "55";
+        public const string RESSETBLINK = "25";
+        public const string RESSETINVERT = "27";
+        public const string RESETHIDE = "28";
+        #endregion
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public const string Italic = CSI+"3m";
-        /// <summary>
-        /// 
-        /// </summary>
-        public const string ResetItalic = CSI+"23m";
-
-        /// <summary>
-        /// Underlined, interferes with <see cref="DoubleUnderline"/>.
-        /// </summary>
-        public const string Underline = CSI+"4m";
-        /// <summary>
-        /// Resets <see cref="Underline"/> or <see cref="DoubleUnderline"/>.
-        /// </summary>
-        public const string ResetUnderline = CSI+"24m";
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public const string Blink = CSI+"5m";
-        /// <summary>
-        /// 
-        /// </summary>
-        public const string ResetBlink = CSI+"25m";
-        
-        /// <summary>
-        /// Inverse / reverse.
-        /// </summary>
-        public const string Inverse = CSI+"7m";
-        /// <summary>
-        /// 
-        /// </summary>
-        public const string ResetInverse = CSI+"27m";
-
-        /// <summary>
-        /// Invisible / hidden.
-        /// </summary>
-        public const string Invisible = CSI+"8m";
-        /// <summary>
-        /// 
-        /// </summary>
-        public const string ResetInvisible = CSI+"28m";
-
-        /// <summary>
-        /// Striketrough / linetrough.
-        /// </summary>
-        public const string Striketrough = CSI+"9m";
-        /// <summary>
-        /// 
-        /// </summary>
-        public const string ResetStriketrough = CSI+"29m";
-
-        /// <summary>
-        /// non-specified, may only work in some terminals.
-        /// Interferes with <see cref="Underline"/>.
-        /// </summary>
-        public const string DoubleUnderline = CSI+"21m";
-        /// <summary>
-        /// Resets <see cref="DoubleUnderline"/> or <see cref="Underline"/>.
-        /// </summary>
-        public const string ResetDoubleUnderline = CSI+"24m";
-    }
-    /// <summary>
-    /// Generates an ANSI code for moving the cursor.
-    /// </summary>
-    /// <param name="x">The x pos.</param>
-    /// <param name="y">The y pos.</param>
-    /// <returns>The ANSI code.</returns>
-    public static string MoveCursor(int x, int y) {
-        return CSI+y.ToString()+";"+x.ToString()+"H";
-    }
-    /// <summary>
-    /// Generates an ANSI code for setting the foreground color.
-    /// </summary>
-    /// <param name="color">basic set index.</param>
-    /// <returns>The ANSI code.</returns>
-    public static string BasicSetForegroundColor(byte color) {
-        return CSI+color.ToString()+"m";
-    }
-    /// <summary>
-    /// Generates an ANSI code for setting the background color.
-    /// </summary>
-    /// <param name="color">basic set index.</param>
-    /// <returns>The ANSI code.</returns>
-    public static string BasicSetBackgroundColor(byte color) {
-        return CSI+(color+10).ToString()+"m";
-    }
-    /// <summary>
-    /// Generates an ANSI code for setting the background color.
-    /// </summary>
-    /// <param name="color">table index.</param>
-    /// <returns>The ANSI code.</returns>
-    public static string TableBackgroundColor(byte color) {
-        return CSI+"48;5;"+color.ToString()+"m";
-    }
-    /// <summary>
-    /// Generates an ANSI code for setting the foreground color.
-    /// </summary>
-    /// <param name="color">table index.</param>
-    /// <returns>The ANSI code.</returns>
-    public static string TableForegroundColor(byte color) {
-        return CSI+"38;5;"+color.ToString()+"m";
+        #region SGR - Colors
+        public const string DEFAULTFOREGROUND = "39";
+        [Pure]
+        public static string StandardForeground(byte standardColor) {
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(standardColor, 7, nameof(standardColor));
+            return (30 + standardColor).ToString();
+        }
+        [Pure]
+        public static string BrightForeground(byte brightColor) {
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(brightColor, 7, nameof(brightColor));
+            return (90 + brightColor).ToString();
+        }
+        [Pure]
+        public static string SpecifiedForeground(byte specifiedColor) {
+            return "38;5;" + specifiedColor;
+        }
+        [Pure]
+        public static string SpecifiedForeground(byte r, byte g, byte b) {
+            return "38;2;" + r + ";" + g + ";" + b;
+        }
+        public const string DEFAULTBACKGROUND = "49";
+        [Pure]
+        public static string StandardBackground(byte standardColor) {
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(standardColor, 7, nameof(standardColor));
+            return (40 + standardColor).ToString();
+        }
+        [Pure]
+        public static string BrightBackground(byte brightColor) {
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(brightColor, 7, nameof(brightColor));
+            return (100 + brightColor).ToString();
+        }
+        [Pure]
+        public static string SpecifiedBackground(byte specifiedColor) {
+            return "48;5;" + specifiedColor;
+        }
+        [Pure]
+        public static string SpecifiedBackground(byte r, byte g, byte b) {
+            return "48;2;" + r + ";" + g + ";" + b;
+        }
+        public const string DEFAULTUNDERLINE = "59";
+        [Pure]
+        public static string SpecifiedUnderline(byte specifiedColor) {
+            return "48;5;" + specifiedColor;
+        }
+        [Pure]
+        public static string SpecifiedUnderline(byte r, byte g, byte b) {
+            return "58;2;" + r + ";" + g + ";" + b;
+        }
+        #endregion
     }
     
-    /// <summary>
-    /// Generates an ANSI code for setting the foreground color.
-    /// </summary>
-    /// <param name="r">R value.</param>
-    /// <param name="g">G value.</param>
-    /// <param name="b">B value.</param>
-    /// <returns>The ANSI code.</returns>
-    public static string ForegroundTrueColor(byte r, byte g, byte b) {
-        return CSI+"38;2;"+r.ToString()+";"+g.ToString()+";"+b.ToString()+"m";
-    }
-    /// <summary>
-    /// Generates an ANSI code for setting the background color.
-    /// </summary>
-    /// <param name="r">R value.</param>
-    /// <param name="g">G value.</param>
-    /// <param name="b">B value.</param>
-    /// <returns>The ANSI code.</returns>
-    public static string BackgroundTrueColor(byte r, byte g, byte b) {
-        return CSI+"48;2;"+r.ToString()+";"+g.ToString()+";"+b.ToString()+"m";
-    }
 }
