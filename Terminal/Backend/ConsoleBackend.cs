@@ -70,9 +70,12 @@ public class ConsoleBackend : TerminalBackend {
         control = keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control);
         return true;
     }
-
     /// <inheritdoc/>
     public override void WaitForKeyPress() {
         Console.ReadKey(true);
+    }
+    /// <inheritdoc/>
+    public override (int x, int y) GetCursorPosition() {
+        return Console.GetCursorPosition();
     }
 }

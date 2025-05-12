@@ -3,6 +3,13 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Logs
+*.log
+
+
+# Shader-specific files
+*.spv
+
 # User-specific files
 *.rsuser
 *.suo
@@ -89,7 +96,6 @@ StyleCopReport.xml
 *.tmp
 *.tmp_proj
 *_wpftmp.csproj
-*.log
 *.tlog
 *.vspscc
 *.vssscc

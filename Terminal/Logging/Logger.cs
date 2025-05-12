@@ -486,7 +486,7 @@ public class Logger : IDisposable, IEquatable<Logger> {
     /// Checks if the that color is identical to this one.
     /// </remarks>
     public override bool Equals(object? obj) {
-        return Equals(obj as Color);
+        return Equals(obj as Logger);
     }
     /// <inheritdoc/>
     public override int GetHashCode() {

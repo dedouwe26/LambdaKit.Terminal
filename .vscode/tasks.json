@@ -9,6 +9,15 @@
                 "build",
                 "${workspaceFolder}/examples/Args/Args.csproj"
             ],
+        },
+        {
+            "label": "build Colors Example",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/examples/Colors/Colors.csproj"
+            ],
         }
     ]
 }

@@ -327,12 +327,12 @@ public class ArgumentParser {
             msg+=new StyleBuilder().Bold().Text(category.name+":").Bold(false).NewLine();
 
             foreach (ArgumentFormat argument in category.Arguments) {
-                msg+="\t"+new StyleBuilder().Foreground(Color.Cyan).Text(argument.name).ResetForeground().Text(": "+argument.description).NewLine().ToString();
+                msg+="\t"+new StyleBuilder().Foreground((StandardColor)StandardColor.Colors.Cyan).Text(argument.name).ResetForeground().Text(": "+argument.description).NewLine().ToString();
             }
 
             foreach (OptionFormat option in category.Options) {
                 msg+="\t";
-                StyleBuilder builder = new StyleBuilder().Foreground(Color.Green).Text("[");
+                StyleBuilder builder = new StyleBuilder().Foreground((StandardColor)StandardColor.Colors.BrightGreen).Text("[");
                 for (int i = 0; i < option.keys.Count; i++) {
                     string key = option.keys[i];
                     builder.Bold().Text((key.Length > 1 ? "--" : "-")+key).Bold(false);
@@ -342,7 +342,7 @@ public class ArgumentParser {
                 }
                 builder.Text("]").ResetForeground().Text(": "+option.description).NewLine();
                 foreach (OptionFormat.ParameterFormat parameter in option.parameters) {
-                    builder.Text("\t\t").Foreground(Color.Orange).Text(parameter.name).ResetForeground().Text(": "+parameter.description).NewLine();
+                    builder.Text("\t\t").Foreground(RGBColor.Orange).Text(parameter.name).ResetForeground().Text(": "+parameter.description).NewLine();
                 }
                 msg+=builder;
             }

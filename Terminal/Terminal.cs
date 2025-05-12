@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
+﻿using System.Runtime.Versioning;
 using System.Text;
 using OxDED.Terminal.Backend;
 using OxDED.Terminal.Backend.Window;
@@ -20,14 +19,17 @@ public delegate void KeyPressCallback(ConsoleKey key, char keyChar, bool alt, bo
 /// Handles all the terminal stuff.
 /// </summary>
 public static class Terminal {
-    private static readonly ITerminalBackend backend;
+    private static readonly TerminalBackend backend;
     static Terminal() {
         backend = CreateBackend();
+        backend.OnKeyPress += 
+            (key, keyChar, alt, shift, control) => OnKeyPress?.Invoke(key, keyChar, alt, shift, control);
         OutputEncoding = Encoding.UTF8;
         InputEncoding = Encoding.UTF8;
         BlockCancelKey = false;
     }
 
+    #region Backend
     /// <summary>
     /// Creates a new terminal backend.
     /// </summary>
@@ -48,56 +50,9 @@ public static class Terminal {
         throw new PlatformNotSupportedException("Only Windows supports terminal windows.");
         #endif
     }
+    #endregion
 
-    private static Thread? listenForKeysThread;
-    private static bool listenForKeys = false;
-    /// <summary>
-    /// If it should listen for keys.
-    /// </summary>
-    public static bool ListenForKeys { set {
-        if (value && (!listenForKeys)) {
-            listenForKeys = value;
-            listenForKeysThread = new Thread(ListenForKeysMethod);
-            listenForKeysThread.Start();
-        } else {
-            listenForKeys = value;
-        }
-    } get {
-        return listenForKeys;
-    } }
-
-    private static void ListenForKeysMethod() {
-        while (listenForKeys) {
-            ReadKey(out ConsoleKey key, out char keyChar, out bool alt, out bool shift, out bool control);
-            OnKeyPress?.Invoke(key, keyChar, alt, shift, control);
-        }
-    }
-    /// <summary>
-    /// Reads a key from the terminal.
-    /// </summary>
-    /// <param name="key">The read key.</param>
-    /// <param name="keyChar">The key character representing that key.</param>
-    /// <param name="alt">True if the alt key was pressed.</param>
-    /// <param name="shift">True if the shift key was pressed.</param>
-    /// <param name="control">True if the control key was pressed.</param>
-    public static void ReadKey(out ConsoleKey key, out char keyChar, out bool alt, out bool shift, out bool control) {
-        backend.ReadKey(out key, out keyChar, out alt, out shift, out control);
-    }
-    /// <summary>
-    /// If it should block CTRL + C.
-    /// </summary>
-    public static bool BlockCancelKey { get => backend.HideCursor; set => backend.HideCursor = value; }
-    /// <summary>
-    /// Waits until a key is pressed.
-    /// </summary>
-    public static void WaitForKeyPress() {
-        ReadKey(out _, out _, out _, out _, out _);
-    }
-    /// <summary>
-    /// An event for when a key is pressed.
-    /// </summary>
-    public static event KeyPressCallback? OnKeyPress;
-
+    #region Abstraction
     /// <summary>
     /// The out (to terminal) stream.
     /// </summary>
@@ -113,7 +68,7 @@ public static class Terminal {
     /// <summary>
     /// Hides or shows terminal cursor.
     /// </summary>
-    public static bool HideCursor { get => backend.HideCursor; set => backend.HideCursor = value; }
+    public static bool HideCursor { set => backend.HideCursor = value; }
     /// <summary>
     /// The width (in characters) of the terminal.
     /// </summary>
@@ -130,52 +85,58 @@ public static class Terminal {
     /// The encoding used for the error and out streams (default: UTF-8).
     /// </summary>
     public static Encoding OutputEncoding { get => backend.OutputEncoding; set => backend.OutputEncoding = value; }
-    
+    #endregion
+
+    #region Writing
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the terminal, with a style.
     /// </summary>
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
-    public static void Write(object? text, Style? style = null) {
-        Out.Write((style ?? new Style()).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public static void Write(object? text, Style? style = null, bool postReset = true) {
+        backend.Write(text, style, postReset);
     }
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the terminal, with a style.
     /// </summary>
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
-    public static void WriteLine(object? text, Style? style = null) {
-        Out.WriteLine((style ?? new Style()).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public static void WriteLine(object? text, Style? style = null, bool postReset = true) {
+        backend.WriteLine(text, style, postReset);
     }
     /// <summary>
     /// Writes a line to the terminal, with a style.
     /// </summary>
     /// <param name="style">The text decoration to use.</param>
     public static void WriteLine(Style? style = null) {
-        WriteLine(null, style);
+        backend.WriteLine(style);
     }
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the error stream, with a style.
     /// </summary>
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
-    public static void WriteErrorLine(object? text, Style? style = null) {
-        Error.WriteLine((style ?? new Style {ForegroundColor = Colors.Red}).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public static void WriteErrorLine(object? text, Style? style = null, bool postReset = true) {
+        backend.WriteErrorLine(text, style, postReset);
     }
     /// <summary>
     /// Writes a line to the error stream, with a style.
     /// </summary>
     /// <param name="style">The text decoration to use (default: with red foreground).</param>
     public static void WriteErrorLine(Style? style = null) {
-        WriteLine(null, style);
+        backend.WriteErrorLine(style);
     }
     /// <summary>
     /// Writes something (<see cref="object.ToString"/>) to the error stream, with a style.
     /// </summary>
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
-    public static void WriteError(object? text, Style? style = null) {
-        Error.Write((style ?? new Style {ForegroundColor = Colors.Red}).ToANSI()+text?.ToString()+ANSI.Styles.ResetAll);
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public static void WriteError(object? text, Style? style = null, bool postReset = true ) {
+        backend.WriteError(text, style, postReset);
     }
     /// <summary>
     /// Sets the cursor to that position.
@@ -183,9 +144,7 @@ public static class Terminal {
     /// <param name="pos">The position.</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public static void Goto((int x, int y) pos) {
-        if (pos.x >= Width || pos.x < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos x is higher than the width or is lower than 0."); }
-        if (pos.y >= Height || pos.y < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos y is higher than the height or is lower than 0."); }
-        Out.Write(ANSI.MoveCursor(pos.x+1, pos.y+1));
+        backend.Goto(pos);
     }
     /// <summary>
     /// Sets the cursor to that position in the error stream.
@@ -193,16 +152,7 @@ public static class Terminal {
     /// <param name="pos">The position.</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public static void GotoError((int x, int y) pos) {
-        if (pos.x >= Width || pos.x < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos x is higher than the width or is lower than 0."); }
-        if (pos.y >= Height || pos.y < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos y is higher than the height or is lower than 0."); }
-        Error.Write(ANSI.MoveCursor(pos.x+1, pos.y+1));
-    }
-    /// <summary>
-    /// Gets the cursor position.
-    /// </summary>
-    /// <returns>The cursor position.</returns>
-    public static (int x, int y) GetCursorPosition() {
-        return backend.CursorPosition;
+        backend.GotoError(pos);
     }
     /// <summary>
     /// Sets the something (<see cref="object.ToString"/>) at a <paramref name="pos"/>, with a <paramref name="style"/>.
@@ -211,8 +161,7 @@ public static class Terminal {
     /// <param name="pos">The position to set <paramref name="text"/> at.</param>
     /// <param name="style">The text decoration to use.</param>
     public static void Set(object? text, (int x, int y) pos, Style? style = null) {
-        Goto(pos);
-        Write(text, style);
+        backend.Goto(pos).Write(text, style);
     }
 
     /// <summary>
@@ -222,9 +171,11 @@ public static class Terminal {
     /// <param name="pos">The position to set <paramref name="text"/> at.</param>
     /// <param name="style">The text decoration to use.</param>
     public static void SetError(object? text, (int x, int y) pos, Style? style = null) {
-        Goto(pos);
-        WriteError(text, style);
+        backend.GotoError(pos).WriteError(text, style);
     }
+    #endregion
+
+    #region Reading
     /// <summary>
     /// Reads one character from the input stream.
     /// </summary>
@@ -240,35 +191,88 @@ public static class Terminal {
         return In.ReadLine();
     }
 
+    #region Reading - Keys
+    /// <summary>
+    /// Reads a key from the terminal.
+    /// </summary>
+    /// <param name="key">The read key.</param>
+    /// <param name="keyChar">The key character representing that key.</param>
+    /// <param name="alt">True if the alt key was pressed.</param>
+    /// <param name="shift">True if the shift key was pressed.</param>
+    /// <param name="control">True if the control key was pressed.</param>
+    public static void ReadKey(out ConsoleKey key, out char keyChar, out bool alt, out bool shift, out bool control) {
+        backend.ReadKey(out key, out keyChar, out alt, out shift, out control);
+    }
+    /// <summary>
+    /// Waits until a key is pressed.
+    /// </summary>
+    public static void WaitForKeyPress() {
+        backend.WaitForKeyPress();
+    }
+    /// <summary>
+    /// An event for when a key is pressed.
+    /// </summary>
+    public static event KeyPressCallback? OnKeyPress;
+
+    /// <summary>
+    /// If it should listen for keys.
+    /// </summary>
+    public static bool ListenForKeys { set {
+        backend.ListenForKeys = value;
+    } get {
+        return backend.ListenForKeys;
+    } }
+    /// <summary>
+    /// If it should block CTRL + C.
+    /// </summary>
+    public static bool BlockCancelKey { get => backend.BlockCancelKey; set => backend.BlockCancelKey = value; }
+    #endregion
+
+    #endregion
+
+    #region Cursor
+    /// <summary>
+    /// Gets the cursor position.
+    /// </summary>
+    /// <returns>The cursor position.</returns>
+    public static (int x, int y) GetCursorPosition() {
+        return backend.GetCursorPosition();
+    }
+    #endregion
+
+    #region Clearing
+    /// <summary>
+    /// Clears everything, including scrollback buffer (XTerm). 
+    /// </summary>
+    public static void ClearAll() {
+        backend.ClearAll();
+    }
     /// <summary>
     /// Clears (resets) the whole screen.
     /// </summary>
-    public static void Clear() {
-        Goto((0,0));
-        Out.Write(ANSI.EraseScreenFromCursor);
+    public static void ClearScreen() {
+        backend.ClearScreen();
     }
     /// <summary>
-    /// Clears screen from the position to end of the screen.
+    /// Clears screen from the position to end of the screen. Moves cursor to that position.
     /// </summary>
     /// <param name="pos">The start position.</param>
     public static void ClearFrom((int x, int y) pos) {
-        Goto(pos);
-        Out.Write(ANSI.EraseScreenFromCursor);
+        backend.ClearFrom(pos);
     }
     /// <summary>
-    /// Clears (deletes) a line.
+    /// Clears a line. Moves cursor to that line.
     /// </summary>
     /// <param name="line">The y-axis of the line.</param>
     public static void ClearLine(int line) {
-        Goto((0, line));
-        Out.Write(ANSI.EraseLine);
+        backend.ClearLine(line);
     }
     /// <summary>
-    /// Clears the line from the position to the end of the line.
+    /// Clears the line from the position to the end of the line. Moves cursor to that position.
     /// </summary>
     /// <param name="pos">The start position.</param>
     public static void ClearLineFrom((int x, int y) pos) {
-        Goto(pos);
-        Out.Write(ANSI.EraseLineFromCursor);
+        backend.ClearLineFrom(pos);
     }
+    #endregion
 }

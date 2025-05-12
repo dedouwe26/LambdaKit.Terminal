@@ -282,4 +282,8 @@ public class WindowsWindow : TerminalWindow {
         control = (state & (WinAPI.ControlKeyState.LeftCtrlPressed | WinAPI.ControlKeyState.RightCtrlPressed)) != 0;
         return true;
     }
+    /// <inheritdoc/>
+    public override (int x, int y) GetCursorPosition() {
+        return Console.GetCursorPosition();
+    }
 }

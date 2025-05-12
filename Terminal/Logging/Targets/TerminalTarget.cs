@@ -19,11 +19,13 @@ public class TerminalTarget : FormattedTarget {
     /// Default:
     /// <c>{5}[{0}][{2}][BOLD{3}RESETBOLD]: {4}RESETALL</c>
     /// </remarks>
-    public new string Format = "{5}[{0}][{2}]["+ANSI.Styles.Bold+"{3}"+ANSI.Styles.ResetBold+"]: {4}"+ANSI.Styles.ResetAll;
+    public new string Format = "{5}[{0}][{2}]["+ANSI.SGR.Build(ANSI.SGR.BOLD)+"{3}"+ANSI.SGR.Build(ANSI.SGR.RESETINTENSITY)+"]: {4}"+ANSI.SGR.BuildedResetAll;
     /// <summary>
     /// The colors of the severities (index: 0: Fatal, 1: Error, 2: Warning, 3: Message, 4: Info, 5: Debug, 6: Trace).
     /// </summary>
-    public readonly List<Color> SeverityColors = [new Color(255, 0, 0), new Color(255, 80, 80), new Color(255, 255, 0), ((Color)Colors.White), new Color(180, 180, 180), new Color(255,160,0), new Color(20, 200, 20)];
+    public readonly List<IColor> SeverityColors = [
+        (StandardColor)StandardColor.Colors.BrightRed, (StandardColor)StandardColor.Colors.Red, (StandardColor)StandardColor.Colors.Yellow, (StandardColor)StandardColor.Colors.BrightWhite, (StandardColor)StandardColor.Colors.White, RGBColor.Orange, (StandardColor)StandardColor.Colors.Green
+    ];
     /// <summary>
     /// Creates a target that targets the terminal.
     /// </summary>
