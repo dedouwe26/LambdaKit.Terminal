@@ -3,19 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaKit.Terminal", "LambdaKit.Terminal\LambdaKit.Terminal.csproj", "{68A8992F-1D7C-4369-868E-2456EB388E60}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaKit.Terminal", "LambdaKit.Terminal/LambdaKit.Terminal.csproj", "{68A8992F-1D7C-4369-868E-2456EB388E60}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{1F034998-F21B-4BBF-8A75-7D31234744CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Args", "examples\Args\Args.csproj", "{06D5EAF8-F6CE-44C5-9891-05D697BAA312}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Args", "examples/Args/Args.csproj", "{06D5EAF8-F6CE-44C5-9891-05D697BAA312}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Colors", "examples\Colors\Colors.csproj", "{B2946DC9-F615-421D-9FB7-024F4FB42A0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Colors", "examples/Colors/Colors.csproj", "{B2946DC9-F615-421D-9FB7-024F4FB42A0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keypresses", "examples\Keypresses\Keypresses.csproj", "{3C90BEEB-6228-4490-B841-7E6536F4BD71}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keypresses", "examples/Keypresses/Keypresses.csproj", "{3C90BEEB-6228-4490-B841-7E6536F4BD71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Window", "examples\Window\Window.csproj", "{B4D0C3C5-1AD1-45D4-9C55-637F5FCBD108}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Window", "examples/Window/Window.csproj", "{B4D0C3C5-1AD1-45D4-9C55-637F5FCBD108}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Screenbuffers", "examples\Screenbuffers\Screenbuffers.csproj", "{5520B35E-544B-48CB-A31E-15445F79461F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Screenbuffers", "examples/Screenbuffers/Screenbuffers.csproj", "{5520B35E-544B-48CB-A31E-15445F79461F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
