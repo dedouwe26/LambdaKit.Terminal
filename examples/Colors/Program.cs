@@ -43,7 +43,8 @@ class Program {
         Terminal.OnKeyPress += (key, keyChar, alt, shift, control) => {
             // If X is pressed, clear terminal.
             if (key == ConsoleKey.X) {
-                Terminal.ClearAll();
+                Terminal.ClearScreen();
+                Terminal.Goto((0, 0));
             }
             // Stops program.
             Terminal.ListenForKeys = false;

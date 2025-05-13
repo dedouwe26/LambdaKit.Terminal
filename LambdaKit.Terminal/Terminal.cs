@@ -94,7 +94,7 @@ public static class Terminal {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void Write(object? text, Style? style = null, bool postReset = true) {
+    public static void Write(object? text, Style? style = null, bool postReset = false) {
         backend.Write(text, style, postReset);
     }
     /// <summary>
@@ -103,7 +103,7 @@ public static class Terminal {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteLine(object? text, Style? style = null, bool postReset = true) {
+    public static void WriteLine(object? text, Style? style = null, bool postReset = false) {
         backend.WriteLine(text, style, postReset);
     }
     /// <summary>
@@ -119,7 +119,7 @@ public static class Terminal {
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteErrorLine(object? text, Style? style = null, bool postReset = true) {
+    public static void WriteErrorLine(object? text, Style? style = null, bool postReset = false) {
         backend.WriteErrorLine(text, style, postReset);
     }
     /// <summary>
@@ -135,7 +135,7 @@ public static class Terminal {
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteError(object? text, Style? style = null, bool postReset = true ) {
+    public static void WriteError(object? text, Style? style = null, bool postReset = false) {
         backend.WriteError(text, style, postReset);
     }
     /// <summary>
@@ -230,6 +230,47 @@ public static class Terminal {
 
     #endregion
 
+    #region Screen
+    /// <summary>
+    /// Saves the current screen and loads another (XTerm) (opposite of <see cref="UseNormalScreen"/>).
+    /// </summary>
+    public static void UseAlternativeScreen() {
+        backend.UseAlternativeScreen();
+    }
+    /// <summary>
+    /// Loads the old screen (XTerm) (opposite of <see cref="UseAlternativeScreen"/>).
+    /// </summary>
+    public static void UseNormalScreen() {
+        backend.UseNormalScreen();
+    }
+    /// <summary>
+    /// Saves the current screen and loads another, also saving the cursor position (XTerm) (opposite of <see cref="UseNormScreenAndRestoreCursor"/>).
+    /// </summary>
+    public static void UseAltScreenAndSaveCursor() {
+        backend.UseAltScreenAndSaveCursor();
+    }
+    /// <summary>
+    /// Loads the old screen, also restoring the cursor position (XTerm) (opposite of <see cref="UseNormScreenAndRestoreCursor"/>).
+    /// </summary>
+    public static void UseNormScreenAndRestoreCursor() {
+        backend.UseNormScreenAndRestoreCursor();
+    }
+    /// <summary>
+    /// Scrolls up. Adds new lines at the bottom.
+    /// </summary>
+    /// <param name="amount">How many lines to scroll up.</param>
+    public static void ScrollUp(uint amount = 1) {
+        backend.ScrollUp(amount);
+    }
+    /// <summary>
+    /// Scrolls down. Adds new lines at the top.
+    /// </summary>
+    /// <param name="amount">How many lines to scroll down.</param>
+    public static void ScrollDown(uint amount = 1) {
+        backend.ScrollDown(amount);
+    }
+    #endregion
+
     #region Cursor
     /// <summary>
     /// Gets the cursor position.
@@ -237,6 +278,18 @@ public static class Terminal {
     /// <returns>The cursor position.</returns>
     public static (int x, int y) GetCursorPosition() {
         return backend.GetCursorPosition();
+    }
+    /// <summary>
+    /// Saves the cursor position (DEC).
+    /// </summary>
+    public static void SaveCursorPosition() {
+        backend.SaveCursorPosition();
+    }
+    /// <summary>
+    /// Restores the cursor position (DEC).
+    /// </summary>
+    public static void RestoreCursorPosition() {
+        backend.RestoreCursorPosition();
     }
     #endregion
 
@@ -273,6 +326,55 @@ public static class Terminal {
     /// <param name="pos">The start position.</param>
     public static void ClearLineFrom((int x, int y) pos) {
         backend.ClearLineFrom(pos);
+    }
+    #endregion
+    
+    #region Misc
+    /// <summary>
+    /// Makes an audible noise.
+    /// </summary>
+    public static void Bell() {
+        backend.Bell();
+    }
+    /// <summary>
+    /// Writes a link to a URI in the terminal (OSC 8).
+    /// </summary>
+    /// <param name="uri">The URI to write.</param>
+    /// <param name="label">The label to give.</param>
+    /// <param name="style">The text decoration to use.</param>
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public static void WriteHyperlink(Uri uri, string label, Style? style = null, bool postReset = false) {
+        backend.WriteHyperlink(uri, label, style, postReset);
+    }
+    /// <summary>
+    /// Writes a link to a URI in the terminal (OSC 8).
+    /// </summary>
+    /// <param name="uri">The URI to write.</param>
+    /// <param name="label">The label to give.</param>
+    /// <param name="style">The text decoration to use.</param>
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public static void WriteHyperlinkLine(Uri uri, string label, Style? style = null, bool postReset = false) {
+        backend.WriteHyperlink(uri, label, style, postReset);
+    }
+    /// <summary>
+    /// Writes a link to a URI in the terminal (OSC 8).
+    /// </summary>
+    /// <param name="uri">The URI to write.</param>
+    /// <param name="label">The label to give.</param>
+    /// <param name="style">The text decoration to use.</param>
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public static void WriteHyperlinkError(Uri uri, string label, Style? style = null, bool postReset = false) {
+        backend.WriteHyperlink(uri, label, style, postReset);
+    }
+    /// <summary>
+    /// Writes a link to a URI in the terminal (OSC 8).
+    /// </summary>
+    /// <param name="uri">The URI to write.</param>
+    /// <param name="label">The label to give.</param>
+    /// <param name="style">The text decoration to use.</param>
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public static void WriteHyperlinkErrorLine(Uri uri, string label, Style? style = null, bool postReset = false) {
+        backend.WriteHyperlink(uri, label, style, postReset);
     }
     #endregion
 }

@@ -239,11 +239,12 @@ public class WindowsWindow : TerminalWindow {
     /// <inheritdoc/>
     /// <exception cref="Win32Exception"></exception>
     /// <exception cref="ObjectDisposedException"></exception>
-    public override void WaitForKeyPress() {
+    public override TerminalBackend WaitForKeyPress() {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (!WinAPI.ReadConsoleInput(consoleIn, out _, 1, out _)) {
             throw new Win32Exception("Failed to read console inputs: "+Marshal.GetLastWin32Error());
         }
+        return this;
     }
 
     /// <inheritdoc/>

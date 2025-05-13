@@ -71,8 +71,9 @@ public class ConsoleBackend : TerminalBackend {
         return true;
     }
     /// <inheritdoc/>
-    public override void WaitForKeyPress() {
+    public override TerminalBackend WaitForKeyPress() {
         Console.ReadKey(true);
+        return this;
     }
     /// <inheritdoc/>
     public override (int x, int y) GetCursorPosition() {

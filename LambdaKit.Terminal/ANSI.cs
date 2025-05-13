@@ -74,7 +74,7 @@ public static class ANSI {
     /// </summary>
     public const string ELCE = CSI+"K";
     /// <summary>
-    /// Scroll Up, scrolls up. Adds new lines on the bottom.
+    /// Scroll Up, scrolls up. Adds new lines at the bottom.
     /// </summary>
     /// <param name="amount">How many lines to scroll up.</param>
     /// <returns>The escape sequence.</returns>
@@ -82,7 +82,7 @@ public static class ANSI {
         return CSI+amount.ToString()+"S";
     }
     /// <summary>
-    /// Scroll Down, scrolls down. Adds new lines on the top.
+    /// Scroll Down, scrolls down. Adds new lines at the top.
     /// </summary>
     /// <param name="amount">How many lines to scroll down.</param>
     /// <returns>The escape sequence.</returns>

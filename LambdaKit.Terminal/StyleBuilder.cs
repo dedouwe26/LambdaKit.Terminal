@@ -232,6 +232,17 @@ public class StyleBuilder {
         return this;
     }
     /// <summary>
+    /// Adds a link to a URI (OSC 8).
+    /// </summary>
+    /// <param name="uri">The URI to write.</param>
+    /// <param name="label">The label to give.</param>
+    /// <returns>This style builder.</returns>
+    public StyleBuilder Hyperlink(Uri uri, string label) {
+        Apply();
+        text += ANSI.Hyperlink(uri.AbsolutePath, label);
+        return this;
+    }
+    /// <summary>
     /// Adds a new line.
     /// </summary>
     /// <returns>This style builder.</returns>

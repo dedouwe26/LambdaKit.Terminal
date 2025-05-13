@@ -46,7 +46,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend Write(object? text, Style? style = null, bool postReset = true) {
+    public virtual TerminalBackend Write(object? text, Style? style = null, bool postReset = false) {
         StandardOutput.Write((style ?? new Style()).ToANSI()+text?.ToString()+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -56,7 +56,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteLine(object? text, Style? style = null, bool postReset = true) {
+    public virtual TerminalBackend WriteLine(object? text, Style? style = null, bool postReset = false) {
         StandardOutput.WriteLine((style ?? new Style()).ToANSI()+text?.ToString()+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -74,7 +74,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The text the error output stream.</param>
     /// <param name="style">The style to use (defto write toault: with red foreground).</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteErrorLine(object? text, Style? style = null, bool postReset = true) {
+    public virtual TerminalBackend WriteErrorLine(object? text, Style? style = null, bool postReset = false) {
         StandardError.WriteLine((style ?? new Style {ForegroundColor = (StandardColor)StandardColor.Colors.Red}).ToANSI()+text?.ToString()+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -92,7 +92,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteError(object? text, Style? style = null, bool postReset = true ) {
+    public virtual TerminalBackend WriteError(object? text, Style? style = null, bool postReset = false ) {
         StandardError.Write((style ?? new Style {ForegroundColor = (StandardColor)StandardColor.Colors.Red}).ToANSI()+text?.ToString()+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -140,8 +140,9 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <summary>
     /// Waits until a key is pressed.
     /// </summary>
-    public virtual void WaitForKeyPress() {
+    public virtual TerminalBackend WaitForKeyPress() {
         ReadKey(out _, out _, out _, out _, out _);
+        return this;
     }
     /// <summary>
     /// An event for when a key is pressed.
@@ -182,6 +183,53 @@ public abstract class TerminalBackend : ITerminalBackend {
 
     #endregion
 
+    #region Screen
+    /// <summary>
+    /// Saves the current screen and loads another (XTerm) (opposite of <see cref="UseNormalScreen"/>).
+    /// </summary>
+    public virtual TerminalBackend UseAlternativeScreen() {
+        StandardOutput.Write(ANSI.UseAlternateScreenBuffer);
+        return this;
+    }
+    /// <summary>
+    /// Loads the old screen (XTerm) (opposite of <see cref="UseAlternativeScreen"/>).
+    /// </summary>
+    public virtual TerminalBackend UseNormalScreen() {
+        StandardOutput.Write(ANSI.UseNormalScreenBuffer);
+        return this;
+    }
+    /// <summary>
+    /// Saves the current screen and loads another, also saving the cursor position (XTerm) (opposite of <see cref="UseNormScreenAndRestoreCursor"/>).
+    /// </summary>
+    public virtual TerminalBackend UseAltScreenAndSaveCursor() {
+        StandardOutput.Write(ANSI.SaveCursorAndAltScreen);
+        return this;
+    }
+    /// <summary>
+    /// Loads the old screen, also restoring the cursor position (XTerm) (opposite of <see cref="UseNormScreenAndRestoreCursor"/>).
+    /// </summary>
+    public virtual TerminalBackend UseNormScreenAndRestoreCursor() {
+        StandardOutput.Write(ANSI.RestoreCursorAndNormScreen);
+        return this;
+    }
+    /// <summary>
+    /// Scrolls up. Adds new lines at the bottom.
+    /// </summary>
+    /// <param name="amount">How many lines to scroll up.</param>
+    public virtual TerminalBackend ScrollUp(uint amount = 1) {
+        StandardOutput.Write(ANSI.SU(amount));
+        return this;
+    }
+    /// <summary>
+    /// Scrolls down. Adds new lines at the top.
+    /// </summary>
+    /// <param name="amount">How many lines to scroll down.</param>
+    public virtual TerminalBackend ScrollDown(uint amount = 1) {
+        StandardOutput.Write(ANSI.SD(amount));
+        return this;
+    }
+    #endregion
+
     #region Cursor
     private bool cursorHidden = false;
     /// <inheritdoc/>
@@ -193,6 +241,20 @@ public abstract class TerminalBackend : ITerminalBackend {
     public virtual (int x, int y) CursorPosition { get => GetCursorPosition(); set {
         Goto(value);
     } }
+    /// <summary>
+    /// Saves the cursor position (DEC).
+    /// </summary>
+    public virtual TerminalBackend SaveCursorPosition() {
+        StandardOutput.Write(ANSI.DECSC);
+        return this;
+    }
+    /// <summary>
+    /// Restores the cursor position (DEC).
+    /// </summary>
+    public virtual TerminalBackend RestoreCursorPosition() {
+        StandardOutput.Write(ANSI.DECRC);
+        return this;
+    }
     #endregion
 
     #region Clearing
@@ -235,6 +297,60 @@ public abstract class TerminalBackend : ITerminalBackend {
     public TerminalBackend ClearLineFrom((int x, int y) pos) {
         Goto(pos);
         StandardOutput.Write(ANSI.ELCE);
+        return this;
+    }
+    #endregion
+
+    #region Misc
+    /// <summary>
+    /// Makes an audible noise.
+    /// </summary>
+    public virtual TerminalBackend Bell() {
+        StandardOutput.Write(ANSI.BEL);
+        return this;
+    }
+    /// <summary>
+    /// Writes a link to a URI in the terminal (OSC 8).
+    /// </summary>
+    /// <param name="uri">The URI to write.</param>
+    /// <param name="label">The label to give.</param>
+    /// <param name="style">The text decoration to use.</param>
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public virtual TerminalBackend WriteHyperlink(Uri uri, string label, Style? style = null, bool postReset = false) {
+        StandardOutput.Write((style ?? new Style()).ToANSI()+ANSI.Hyperlink(uri.AbsoluteUri, label)+(postReset ? ANSI.SGR.BuildedResetAll : ""));
+        return this;
+    }
+    /// <summary>
+    /// Writes a link to a URI in the terminal (OSC 8).
+    /// </summary>
+    /// <param name="uri">The URI to write.</param>
+    /// <param name="label">The label to give.</param>
+    /// <param name="style">The text decoration to use.</param>
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public virtual TerminalBackend WriteHyperlinkLine(Uri uri, string label, Style? style = null, bool postReset = false) {
+        StandardOutput.WriteLine((style ?? new Style()).ToANSI()+ANSI.Hyperlink(uri.AbsoluteUri, label)+(postReset ? ANSI.SGR.BuildedResetAll : ""));
+        return this;
+    }
+    /// <summary>
+    /// Writes a link to a URI in the terminal (OSC 8).
+    /// </summary>
+    /// <param name="uri">The URI to write.</param>
+    /// <param name="label">The label to give.</param>
+    /// <param name="style">The text decoration to use.</param>
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public virtual TerminalBackend WriteHyperlinkError(Uri uri, string label, Style? style = null, bool postReset = false) {
+        StandardError.Write((style ?? new Style()).ToANSI()+ANSI.Hyperlink(uri.AbsoluteUri, label)+(postReset ? ANSI.SGR.BuildedResetAll : ""));
+        return this;
+    }
+    /// <summary>
+    /// Writes a link to a URI in the terminal (OSC 8).
+    /// </summary>
+    /// <param name="uri">The URI to write.</param>
+    /// <param name="label">The label to give.</param>
+    /// <param name="style">The text decoration to use.</param>
+    /// <param name="postReset">If it should reset all the styles afterwards.</param>
+    public virtual TerminalBackend WriteHyperlinkErrorLine(Uri uri, string label, Style? style = null, bool postReset = false) {
+        StandardError.WriteLine((style ?? new Style()).ToANSI()+ANSI.Hyperlink(uri.AbsoluteUri, label)+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
     #endregion
