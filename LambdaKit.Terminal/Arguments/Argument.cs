@@ -1,5 +1,3 @@
-using static LambdaKit.Terminal.Arguments.ArgumentFormatter;
-
 namespace LambdaKit.Terminal.Arguments;
 
 /// <summary>
