@@ -1,7 +1,7 @@
 ﻿// The namespace of the terminal and terminal windowing.
 using System.Runtime.Versioning;
-using OxDED.Terminal;
-using OxDED.Terminal.Backend.Window;
+using LambdaKit.Terminal;
+using LambdaKit.Terminal.Backend.Window;
 
 class Program {
     [SupportedOSPlatform("Windows")]

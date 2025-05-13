@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Terminal\Terminal.csproj" />
+    <ProjectReference Include="..\..\LambdaKit.Terminal/LambdaKit.Terminal.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

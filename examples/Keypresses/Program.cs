@@ -1,5 +1,5 @@
 ﻿// The namespace of the terminal.
-using OxDED.Terminal;
+using LambdaKit.Terminal;
 
 class Program {
     public static sbyte countdown = 5;

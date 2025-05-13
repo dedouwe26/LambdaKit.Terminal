@@ -1,0 +1,2 @@
+namespace LambdaKit.Terminal.Arguments;
+

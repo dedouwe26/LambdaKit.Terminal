@@ -1,5 +1,5 @@
-﻿using OxDED.Terminal;
-using OxDED.Terminal.Arguments;
+﻿using LambdaKit.Terminal;
+using LambdaKit.Terminal.Arguments;
 
 class Program {
     public static void Main(string[] args) {
