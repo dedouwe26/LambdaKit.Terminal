@@ -2,7 +2,7 @@
 using LambdaKit.Terminal;
 
 class Program {
-    public static void Main(string[] args) {
+    public static void Main() {
         // * Using style.
         Terminal.WriteLine("Red\n", new Style{ForegroundColor = RGBColor.Red});
 

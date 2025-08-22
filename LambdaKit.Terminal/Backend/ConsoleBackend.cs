@@ -10,7 +10,6 @@ public class ConsoleBackend : TerminalBackend {
     /// Creates a new dotnet terminal backend.
     /// </summary>
     public ConsoleBackend() {
-        HideCursor = false;
         Console.CancelKeyPress += (sender, e) => {
             if (BlockCancelKey) {
                 e.Cancel = true;
