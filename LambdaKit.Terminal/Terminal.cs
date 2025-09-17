@@ -94,7 +94,7 @@ public static class Terminal {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void Write(object? text, Style? style = null, bool postReset = false) {
+    public static void Write(object? text, Style? style = null, bool postReset = true) {
         backend.Write(text, style, postReset);
     }
     /// <summary>
@@ -103,7 +103,7 @@ public static class Terminal {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteLine(object? text, Style? style = null, bool postReset = false) {
+    public static void WriteLine(object? text, Style? style = null, bool postReset = true) {
         backend.WriteLine(text, style, postReset);
     }
     /// <summary>
@@ -119,7 +119,7 @@ public static class Terminal {
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteErrorLine(object? text, Style? style = null, bool postReset = false) {
+    public static void WriteErrorLine(object? text, Style? style = null, bool postReset = true) {
         backend.WriteErrorLine(text, style, postReset);
     }
     /// <summary>
@@ -135,7 +135,7 @@ public static class Terminal {
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteError(object? text, Style? style = null, bool postReset = false) {
+    public static void WriteError(object? text, Style? style = null, bool postReset = true) {
         backend.WriteError(text, style, postReset);
     }
     /// <summary>
@@ -343,7 +343,7 @@ public static class Terminal {
     /// <param name="label">The label to give.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteHyperlink(Uri uri, string label, Style? style = null, bool postReset = false) {
+    public static void WriteHyperlink(Uri uri, string label, Style? style = null, bool postReset = true) {
         backend.WriteHyperlink(uri, label, style, postReset);
     }
     /// <summary>
@@ -353,7 +353,7 @@ public static class Terminal {
     /// <param name="label">The label to give.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteHyperlinkLine(Uri uri, string label, Style? style = null, bool postReset = false) {
+    public static void WriteHyperlinkLine(Uri uri, string label, Style? style = null, bool postReset = true) {
         backend.WriteHyperlink(uri, label, style, postReset);
     }
     /// <summary>
@@ -363,7 +363,7 @@ public static class Terminal {
     /// <param name="label">The label to give.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteHyperlinkError(Uri uri, string label, Style? style = null, bool postReset = false) {
+    public static void WriteHyperlinkError(Uri uri, string label, Style? style = null, bool postReset = true) {
         backend.WriteHyperlink(uri, label, style, postReset);
     }
     /// <summary>
@@ -373,7 +373,7 @@ public static class Terminal {
     /// <param name="label">The label to give.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public static void WriteHyperlinkErrorLine(Uri uri, string label, Style? style = null, bool postReset = false) {
+    public static void WriteHyperlinkErrorLine(Uri uri, string label, Style? style = null, bool postReset = true) {
         backend.WriteHyperlink(uri, label, style, postReset);
     }
     #endregion

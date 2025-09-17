@@ -46,7 +46,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend Write(object? text, Style? style = null, bool postReset = false) {
+    public virtual TerminalBackend Write(object? text, Style? style = null, bool postReset = true) {
         StandardOutput.Write((style ?? new Style()).ToANSI()+text?.ToString()+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -56,7 +56,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The thing to write to the terminal.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteLine(object? text, Style? style = null, bool postReset = false) {
+    public virtual TerminalBackend WriteLine(object? text, Style? style = null, bool postReset = true) {
         StandardOutput.WriteLine((style ?? new Style()).ToANSI()+text?.ToString()+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -74,7 +74,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The text the error output stream.</param>
     /// <param name="style">The style to use (defto write toault: with red foreground).</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteErrorLine(object? text, Style? style = null, bool postReset = false) {
+    public virtual TerminalBackend WriteErrorLine(object? text, Style? style = null, bool postReset = true) {
         StandardError.WriteLine((style ?? new Style {ForegroundColor = (StandardColor)StandardColor.Colors.Red}).ToANSI()+text?.ToString()+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -92,7 +92,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="text">The text to write to the error output stream.</param>
     /// <param name="style">The style to use (default: with red foreground).</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteError(object? text, Style? style = null, bool postReset = false ) {
+    public virtual TerminalBackend WriteError(object? text, Style? style = null, bool postReset = true ) {
         StandardError.Write((style ?? new Style {ForegroundColor = (StandardColor)StandardColor.Colors.Red}).ToANSI()+text?.ToString()+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -316,7 +316,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="label">The label to give.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteHyperlink(Uri uri, string label, Style? style = null, bool postReset = false) {
+    public virtual TerminalBackend WriteHyperlink(Uri uri, string label, Style? style = null, bool postReset = true) {
         StandardOutput.Write((style ?? new Style()).ToANSI()+ANSI.Hyperlink(uri.AbsoluteUri, label)+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -327,7 +327,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="label">The label to give.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteHyperlinkLine(Uri uri, string label, Style? style = null, bool postReset = false) {
+    public virtual TerminalBackend WriteHyperlinkLine(Uri uri, string label, Style? style = null, bool postReset = true) {
         StandardOutput.WriteLine((style ?? new Style()).ToANSI()+ANSI.Hyperlink(uri.AbsoluteUri, label)+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -338,7 +338,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="label">The label to give.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteHyperlinkError(Uri uri, string label, Style? style = null, bool postReset = false) {
+    public virtual TerminalBackend WriteHyperlinkError(Uri uri, string label, Style? style = null, bool postReset = true) {
         StandardError.Write((style ?? new Style()).ToANSI()+ANSI.Hyperlink(uri.AbsoluteUri, label)+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
@@ -349,7 +349,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     /// <param name="label">The label to give.</param>
     /// <param name="style">The text decoration to use.</param>
     /// <param name="postReset">If it should reset all the styles afterwards.</param>
-    public virtual TerminalBackend WriteHyperlinkErrorLine(Uri uri, string label, Style? style = null, bool postReset = false) {
+    public virtual TerminalBackend WriteHyperlinkErrorLine(Uri uri, string label, Style? style = null, bool postReset = true) {
         StandardError.WriteLine((style ?? new Style()).ToANSI()+ANSI.Hyperlink(uri.AbsoluteUri, label)+(postReset ? ANSI.SGR.BuildedResetAll : ""));
         return this;
     }
