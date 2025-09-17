@@ -7,7 +7,7 @@
     <PublishTrimmed>true</PublishTrimmed>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>LambdaKit.Terminal</PackageId>
-    <Version>5.0.1</Version>
+    <Version>5.0.2</Version>
     <Authors>0xDED</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>

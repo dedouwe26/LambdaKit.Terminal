@@ -38,7 +38,14 @@ public class ConsoleBackend : TerminalBackend {
 
     private bool cursorHidden = false;
     /// <inheritdoc/>
-    public override bool HideCursor { get => cursorHidden; set { Console.CursorVisible = !value; cursorHidden = value; } }
+    public override bool HideCursor { get => cursorHidden; set {
+			try {
+				Console.CursorVisible = !value;
+			} catch(IOException e) {
+				throw new InvalidOperationException("The current terminal does not support hiding the cursor", e);
+			}
+            cursorHidden = value;
+	} }
     /// <inheritdoc/>
     public override (int x, int y) CursorPosition { get => Console.GetCursorPosition(); set => Console.SetCursorPosition(value.x, value.y); }
     /// <inheritdoc/>

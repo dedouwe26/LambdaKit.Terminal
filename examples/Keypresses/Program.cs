@@ -4,13 +4,14 @@ using LambdaKit.Terminal;
 class Program {
     public static sbyte countdown = 5;
     public static void Main() {
-        // Will listen for keys.
-        Terminal.ListenForKeys = true;
+		Terminal.HideCursor = true;
+		// Will listen for keys (non-blocking).
+		Terminal.ListenForKeys = true;
         // Adds an event.
         Terminal.OnKeyPress += OnKey;
-    }
+	}
     public static void OnKey(ConsoleKey key, char keyChar, bool alt, bool shift, bool control) {
-        // Says what key, and countdown
+        // Says what key has been pressed, and shows the countdown
         Terminal.WriteLine(key.ToString() + " " + countdown.ToString(), new Style() { Bold = control, Italic = alt, Underline = shift});
 
         // lowers the countdown and checks if it is at zero.
@@ -22,6 +23,7 @@ class Program {
             //Waits for key press.
             Terminal.WaitForKeyPress();
             // End of program
+		    Terminal.HideCursor = false;
         }
     }
 }
