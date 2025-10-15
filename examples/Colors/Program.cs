@@ -44,6 +44,7 @@ class Program {
             // If X is pressed, clear terminal.
             if (key == ConsoleKey.X) {
                 Terminal.ClearScreen();
+                Terminal.ClearAll();
                 Terminal.Goto((0, 0));
             }
             // Stops program.

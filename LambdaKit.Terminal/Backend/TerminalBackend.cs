@@ -104,7 +104,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     public virtual TerminalBackend Goto((int x, int y) pos) {
         if (pos.x >= Size.Width || pos.x < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos x is higher than the width or is lower than 0."); }
         if (pos.y >= Size.Height || pos.y < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos y is higher than the height or is lower than 0."); }
-        StandardOutput.Write(ANSI.CUP((uint)pos.x, (uint)pos.y));
+        StandardOutput.Write(ANSI.CUP((uint)pos.y, (uint)pos.x));
         return this;
     }
     /// <summary>
@@ -115,7 +115,7 @@ public abstract class TerminalBackend : ITerminalBackend {
     public virtual TerminalBackend GotoError((int x, int y) pos) {
         if (pos.x >= Size.Width || pos.x < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos x is higher than the width or is lower than 0."); }
         if (pos.y >= Size.Height || pos.y < 0) { throw new ArgumentOutOfRangeException(nameof(pos), "pos y is higher than the height or is lower than 0."); }
-        StandardError.Write(ANSI.CUP((uint)pos.x, (uint)pos.y));
+        StandardError.Write(ANSI.CUP((uint)pos.y, (uint)pos.x));
         return this;
     }
     #endregion
